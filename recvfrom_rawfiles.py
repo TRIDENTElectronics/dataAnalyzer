@@ -500,6 +500,8 @@ class recvfrom_rawdatafiles(Thread):
             fc.Data_save_csv(data_1cl,file_path_name=os.path.join(self.data_path,f"trigid{trigid}_chn{n_chn}_rawdata.csv"),fmt='%d')
             if(len(self.linear_para)!=0):
                 fc.Data_save_csv(fitted_data_1cl,file_path_name=os.path.join(self.data_path,f"trigid{trigid}_chn{n_chn}_fitteddata.csv"))
+                if(deburr_flag>0):
+                    fc.Data_save_csv(deburred_data_1cl,f"trigid{trigid}_chn{n_chn}_deburreddata.csv")
 
     def graph_dns32chn(self, num):
         groupj=[-1,-1,-1,-1]
