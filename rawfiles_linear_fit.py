@@ -11,6 +11,7 @@ import glob
 import gc
 #import pyqtgraph 
 import matplotlib.pyplot as plt
+#
 from recvfrom_rawfiles import recvfrom_rawdatafiles as rr
 import functions as fc
 
@@ -18,10 +19,15 @@ import functions as fc
 class Rawfiles_Linear_fit(Thread):#输入文件名及路径，读取数据，解包，拟合
     def __init__(self, 
                  deltaposi = 0,
-                 linear_fit_ylist = (-300,300)):
+                 linear_fit_ylist = (-300,300),
+                 wastednum=30):
         Thread.__init__(self)
         self.deltaposi = deltaposi
         self.linear_fit_ylist = linear_fit_ylist
+        if wastednum>=0:
+            self.wastednum = wastednum
+        else:
+            self.wastednum = 10
 
     def run(self):
         rr1=rr()
@@ -36,12 +42,12 @@ class Rawfiles_Linear_fit(Thread):#输入文件名及路径，读取数据，解
 
         for n_chn in range(31):
             xlist=[]
-            groups_onechn1,stopposi1=fc.pure_groups(n_chn, rr1.DRSdata)
-            groups_onechn2,stopposi2=fc.pure_groups(n_chn, rr2.DRSdata)
-            groups_onechn1[:,:5]=0xFFFF
-            groups_onechn1[:,1019:]=0xFFFF
-            groups_onechn2[:,:5]=0xFFFF
-            groups_onechn2[:,1019:]=0xFFFF
+            groups_onechn1,stopposi1=rr1.drs_onechn(n_chn)
+            groups_onechn2,stopposi2=rr2.drs_onechn(n_chn)
+            groups_onechn1[:,:self.wastednum//2]=0xFFFF
+            groups_onechn1[:,1024-self.wastednum//2:]=0xFFFF
+            groups_onechn2[:,:self.wastednum//2]=0xFFFF
+            groups_onechn2[:,1024-self.wastednum//2:]=0xFFFF
             for n_group in range(len(groups_onechn1)):
                 groups_onechn1[n_group]=fc.timeorder_to_cellorder(groups_onechn1[n_group],stopposi1[n_group])
             for n_group in range(len(groups_onechn2)):

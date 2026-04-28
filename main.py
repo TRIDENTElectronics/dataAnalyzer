@@ -6,7 +6,7 @@ import os
 if __name__ == '__main__':
     while(1):
         try:
-            num1 = int(input("键入1以进行两点线性拟合,键入2以读取单组文件并分析,负数以退出："))
+            num1 = int(input("键入1以进行两点线性拟合(直流标定),键入2以读取单组文件并分析,负数以退出："))
             if(num1==1):
                 while(1):
                     try:
@@ -28,7 +28,7 @@ if __name__ == '__main__':
                 rr1.conclude()
                 while(1):
                     try:
-                        num2 = int(input("读取单组文件：键入1以重新选择线性拟合参数文件,2以不选择/保持不变(未选择过则只会输出原始码值),负数以退出："))
+                        num2 = int(input("读取单组文件：键入1以重新选择直流标定参数文件,2以不选择/保持不变(未选择过则只会输出原始码值),负数以退出："))
                         if(num2==1):
                             file_path = fc.select_file("npy")
                             rr1.linearpara_load(file_path)
@@ -56,6 +56,7 @@ if __name__ == '__main__':
                                     n_chn=int(input("读取单组文件：单通道：键入通道号(0-30)以查找,负数以退出："))
                                     if(n_chn<0 or n_chn>30):
                                         break
+                                    deburr_flag=int(input("读取单组文件：单通道：键入1以追加周期毛刺消除,0以不进行,负数以退出："))
                                     filter_flag=int(input("读取单组文件：单通道：键入1以追加低通滤波,0以不进行,负数以退出："))
                                     if(filter_flag==1):
                                         freq=int(input("读取单组文件：单通道：键入正数以重新选择滤波截止频率(单位MHZ),0以保持不变(默认140MHZ),负数以退出："))
@@ -66,7 +67,7 @@ if __name__ == '__main__':
                                     save_flag=int(input("读取单组文件：单通道：键入1以保存原始码值及拟合结果为.csv文件,0以不保存,负数以退出："))
                                     if(save_flag<0):
                                         break
-                                    rr1.graph_dns1chn(trigid=trigid, n_chn=n_chn, save_flag=save_flag,filter_flag=filter_flag)
+                                    rr1.graph_dns1chn(trigid=trigid, n_chn=n_chn, save_flag=save_flag, deburr_flag=deburr_flag, filter_flag=filter_flag)
                                 except Exception as e:
                                     print(e)
                                     print("读取单组文件：单通道：//////////////出错，请重新键入//////////////")
@@ -76,7 +77,6 @@ if __name__ == '__main__':
                     except Exception as e:
                         print(e)
                         print("读取单组文件：//////////////出错，请重新键入//////////////")
-                        break
                 while(1):
                     try:
                         allsave_flag=int(input("读取单组文件：键入1以分类保存所有有效原始数据,0以放弃："))

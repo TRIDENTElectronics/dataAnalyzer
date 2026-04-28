@@ -16,6 +16,12 @@ def timestr():
     return timestring
 
 #/////////////////文件存取相关///////////////
+#文件路径
+#current_path = os.path.dirname(os.path.abspath(__file__))
+#建文件夹
+#filefold_path = os.path.join(current_path, filefoldname)
+#if not os.path.exists(filefold_path):
+#    os.makedirs(filefold_path)
 #选数个文件
 def select_files():
     root = tk.Tk()
@@ -34,7 +40,7 @@ def select_file(ext="data"):
     root = tk.Tk()
     root.withdraw()  # 隐藏主窗口
     current_path = os.path.dirname(os.path.abspath(__file__))
-    file_path = filedialog.askopenfilename(title="选择.{ext}文件,请选择同一目录下的文件", initialdir=current_path, filetypes=[("Data files", "*."+ ext), ("All files", "*.*")])
+    file_path = filedialog.askopenfilename(title=f"选择.{ext}文件,请选择同一目录下的文件", initialdir=current_path, filetypes=[("Data files", "*."+ ext), ("All files", "*.*")])
     if not file_path:
         print("未选择文件")
         exit()
@@ -102,6 +108,39 @@ def Graph_group_data(thelist:list):
                 label='one_group_data')
     plt.legend()
     plt.show()
+#32直方图
+def graphs32_histogram(tlist,bins=10):
+    fig, axes = plt.subplots(nrows=4, ncols=8, figsize=(40, 20))
+    for i in range(4):  #行
+        for j in range(8):  #列
+            if i*8+j<len(tlist):
+                xlist=tlist[i*8+j]
+            else:
+                xlist=[1]*1024
+            counts, bin_edges = np.histogram(np.array(xlist), bins=bins)
+            bins_center = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+            ax = axes[i, j]
+            ax.plot(bins_center, counts, color='blue', linewidth=1)
+            ax.set_title(f'            chn{i*8+j}')
+            ax.set_xlabel('ns')
+            ax.set_ylabel('counts')
+    plt.tight_layout()
+    plt.show()
+#直方图
+def graph_histogram(tlist,bins=10):
+    counts, bin_edges = np.histogram(np.array(tlist), bins=bins)
+    bins_center = (bin_edges[:-1] + bin_edges[1:]) / 2
+    plt.figure(figsize=(10,7))
+    plt.plot(bins_center, 
+                counts, 
+                marker='o', 
+                color='blue', 
+                linewidth=1, 
+                label="")
+    plt.legend()
+    plt.show()
+
 #主动进度条，回车看进度
 class process_show(Thread):
     def __init__(self, length):
@@ -141,11 +180,39 @@ def linear_fit(x:list, y:list):
     return linear_fit_para
 #用拟合结果进行线性校正
 def linear_correct(data_to_linearcorrect:list, linear_fit_list:list):
-
     data_linearcorrected = []
     for i in range(len(data_to_linearcorrect)):
         data_linearcorrected.append(linear_fit_list[i][0]*data_to_linearcorrect[i] + linear_fit_list[i][1])
     return data_linearcorrected
+#毛刺消除
+def fitted_debur(fitted_data:list,wasted_num=16,signal_width=10,signal_direction=-1,bur_direction=-1):
+    data1=np.array(fitted_data)[wasted_num:-wasted_num]
+    data1_indices=np.argsort(data1)
+    data2=data1[data1_indices]
+    if signal_direction<0:
+        data3=data2[signal_width:-signal_width*31]
+    else:
+        data3=data2[signal_width*31:-signal_width]
+    len3=len(data3)
+    if bur_direction<0:
+        mean_baseline=np.mean(data3[len3//32:])
+        mean_bur=np.mean(data3[:len3//32])
+        mean_bur_relative=mean_bur-mean_baseline
+        if signal_direction<0:
+            firstburposi=(data1_indices[signal_width+len3//32//2]+wasted_num)%32#首个毛刺位置
+        else:
+            firstburposi=(data1_indices[signal_width*31+len3//32//2]+wasted_num)%32#首个毛刺位置
+    else:
+        mean_baseline=np.mean(data3[:-len3//32])
+        mean_bur=np.mean(data3[-len3//32:])
+        mean_bur_relative=mean_bur-mean_baseline
+        if signal_direction<0:
+            firstburposi=(data1_indices[signal_width+len3-1]+wasted_num)%32#首个毛刺位置
+        else:
+            firstburposi=(data1_indices[signal_width*31+len3-1]+wasted_num)%32#首个毛刺位置
+    for posi in range(firstburposi,1024,32):
+        fitted_data[posi]-=mean_bur_relative
+    return fitted_data
 #时序转空间序
 def timeorder_to_cellorder(onegroup_timeorder_data, posi:int):
     onegroup_cellorder_data = np.concatenate([
@@ -158,16 +225,6 @@ def cellorder_to_timeorder(onegroup_cellorder_data, posi:int):
                 onegroup_cellorder_data[posi+1:],
                 onegroup_cellorder_data[:posi+1]])
     return onegroup_timeorder_data
-#从DRS全数据中分离出单通道纯数据包和停止位等信息
-def pure_groups(n_chn, DRSdata):
-    chipid=n_chn//8
-    j_chn=n_chn%8
-    groups_onechn=[]
-    stop_posi=[]
-    for n_group in range(len(DRSdata[chipid])):
-        groups_onechn.append((DRSdata[chipid][n_group][j_chn])[6:])
-        stop_posi.append(DRSdata[chipid][n_group][j_chn][4])
-    return(np.array(groups_onechn), np.array(stop_posi))
 #滤波窗函数
 numtaps=45
 cutoff=14*10**7

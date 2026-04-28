@@ -446,9 +446,21 @@ class recvfrom_rawdatafiles(Thread):
                     print(f"chip{chipid}DRS最小触发号：{int.from_bytes(mintrigid)}")
                 else:
                     print(f"chip{chipid}DRS无信号")
-
+    #加载直流标定文件
     def linearpara_load(self, parafilename="linear_fit_para_31chn.npy"):
         self.linear_para = fc.read_npy(parafilename)
+
+
+    #从DRS全数据中分离出单通道纯数据包和停止位等信息
+    def drs_onechn(self,n_chn:int):
+        chipid=n_chn//8
+        j_chn=n_chn%8
+        groups_onechn=[]
+        stop_posi=[]
+        for n_group in range(len(self.DRSdata[chipid])):
+            groups_onechn.append((self.DRSdata[chipid][n_group][j_chn])[6:])
+            stop_posi.append(self.DRSdata[chipid][n_group][j_chn][4])
+        return(np.array(groups_onechn), np.array(stop_posi))
 
     def graph_dns1chn(self, trigid, n_chn, save_flag=1, deburr_flag=0, filter_flag=1):
         chipid=n_chn//8
@@ -474,7 +486,7 @@ class recvfrom_rawdatafiles(Thread):
             fc.Graph_group_data(fitted_data_1cl)
             #deburr
             if(deburr_flag==1):
-                deburred_data_1cl = fitted_data_1cl#///////////////////////////////////////
+                deburred_data_1cl = fc.fitted_debur(fitted_data_1cl)#///////////////////////////////////////
                 fc.Graph_group_data(deburred_data_1cl)
             else:
                 deburred_data_1cl = fitted_data_1cl
@@ -482,7 +494,7 @@ class recvfrom_rawdatafiles(Thread):
             if(filter_flag==1):
                 filtered_data_1cl = deburred_data_1cl[10:]
                 filtered_data_1cl = signal.lfilter(fc.FIR_filter, 1.0, filtered_data_1cl)
-            fc.Graph_group_data(filtered_data_1cl)
+                fc.Graph_group_data(filtered_data_1cl)
         if(save_flag==1):
             self.direxists()
             fc.Data_save_csv(data_1cl,file_path_name=os.path.join(self.data_path,f"trigid{trigid}_chn{n_chn}_rawdata.csv"),fmt='%d')
