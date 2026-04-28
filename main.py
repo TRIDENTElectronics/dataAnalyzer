@@ -56,7 +56,10 @@ if __name__ == '__main__':
                                     n_chn=int(input("读取单组文件：单通道：键入通道号(0-30)以查找,负数以退出："))
                                     if(n_chn<0 or n_chn>30):
                                         break
-                                    deburr_flag=int(input("读取单组文件：单通道：键入1以追加周期毛刺消除,0以不进行,负数以退出："))
+                                    deburr_flag=int(input("读取单组文件：单通道：键入1以追加周期毛刺消除（默认信号和毛刺均为负方向）,2以输入信号和毛刺方向，0以不进行,负数以退出："))
+                                    if deburr_flag==2:
+                                        signal_direction=int(input("读取单组文件：单通道：若信号方向为正，键入1，否则键入负数："))
+                                        bur_direction=int(input("读取单组文件：单通道：若毛刺方向为正，键入1，否则键入负数："))
                                     filter_flag=int(input("读取单组文件：单通道：键入1以追加低通滤波,0以不进行,负数以退出："))
                                     if(filter_flag==1):
                                         freq=int(input("读取单组文件：单通道：键入正数以重新选择滤波截止频率(单位MHZ),0以保持不变(默认140MHZ),负数以退出："))
@@ -67,7 +70,7 @@ if __name__ == '__main__':
                                     save_flag=int(input("读取单组文件：单通道：键入1以保存原始码值及拟合结果为.csv文件,0以不保存,负数以退出："))
                                     if(save_flag<0):
                                         break
-                                    rr1.graph_dns1chn(trigid=trigid, n_chn=n_chn, save_flag=save_flag, deburr_flag=deburr_flag, filter_flag=filter_flag)
+                                    rr1.graph_dns1chn(trigid=trigid, n_chn=n_chn, save_flag=save_flag, deburr_flag=deburr_flag, signal_direction=signal_direction,bur_direction=bur_direction,filter_flag=filter_flag)
                                 except Exception as e:
                                     print(e)
                                     print("读取单组文件：单通道：//////////////出错，请重新键入//////////////")

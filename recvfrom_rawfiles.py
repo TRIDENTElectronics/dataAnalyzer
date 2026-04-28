@@ -462,7 +462,7 @@ class recvfrom_rawdatafiles(Thread):
             stop_posi.append(self.DRSdata[chipid][n_group][j_chn][4])
         return(np.array(groups_onechn), np.array(stop_posi))
 
-    def graph_dns1chn(self, trigid, n_chn, save_flag=1, deburr_flag=0, filter_flag=1):
+    def graph_dns1chn(self, trigid, n_chn, save_flag=1, deburr_flag=0, signal_direction=-1, bur_direction=-1,filter_flag=1):
         chipid=n_chn//8
         i_chn=n_chn%8
         for j in range(len(self.DRSdata[chipid])):
@@ -485,8 +485,8 @@ class recvfrom_rawdatafiles(Thread):
             fitted_data_1cl=np.array(fc.linear_correct(data_1cl, timeorder_linear_para))
             fc.Graph_group_data(fitted_data_1cl)
             #deburr
-            if(deburr_flag==1):
-                deburred_data_1cl = fc.fitted_debur(fitted_data_1cl)#///////////////////////////////////////
+            if(deburr_flag>0):
+                deburred_data_1cl = fc.fitted_debur(fitted_data_1cl,signal_direction=signal_direction,bur_direction=bur_direction)#///////////////////////////////////////
                 fc.Graph_group_data(deburred_data_1cl)
             else:
                 deburred_data_1cl = fitted_data_1cl
