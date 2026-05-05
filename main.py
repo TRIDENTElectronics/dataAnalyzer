@@ -60,6 +60,9 @@ if __name__ == '__main__':
                                     if deburr_flag==2:
                                         signal_direction=int(input("读取单组文件：单通道：若信号方向为正，键入1，否则键入负数："))
                                         bur_direction=int(input("读取单组文件：单通道：若毛刺方向为正，键入1，否则键入负数："))
+                                    else:
+                                        signal_direction=-1
+                                        bur_direction=-1
                                     filter_flag=int(input("读取单组文件：单通道：键入1以追加低通滤波,0以不进行,负数以退出："))
                                     if(filter_flag==1):
                                         freq=int(input("读取单组文件：单通道：键入正数以重新选择滤波截止频率(单位MHZ),0以保持不变(默认140MHZ),负数以退出："))
