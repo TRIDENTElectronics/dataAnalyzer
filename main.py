@@ -1,28 +1,40 @@
 import functions as fc
 from recvfrom_rawfiles import recvfrom_rawdatafiles as rr
 from rawfiles_linear_fit import Rawfiles_Linear_fit as lf
+from unlinear_fit_zeros import Unlinear_fit as ulf
 import os
 
 if __name__ == '__main__':
     while(1):
         try:
-            num1 = int(input("键入1以进行两点线性拟合(直流标定),键入2以读取单组文件并分析,负数以退出："))
+            num1 = int(input("键入1以进行两点线性拟合(直流标定),键入2以进行交流标定,键入3以读取单组文件并分析,负数以退出："))
             if(num1==1):
                 while(1):
                     try:
-                        y1=int(input("两点线性拟合：键入文件1对应直流电压值："))
-                        y2=int(input("两点线性拟合：键入文件2对应直流电压值："))
+                        y1=int(input("直流标定：键入文件1对应直流电压值："))
+                        y2=int(input("直流标定：键入文件2对应直流电压值："))
                         break
                     except Exception as e:
                         print(e)
-                        print("两点线性拟合：//////////////出错，请重新键入//////////////")
+                        print("直流标定：//////////////出错，请重新键入//////////////")
                         pass
                 lf1=lf(linear_fit_ylist=(y1,y2))
-                print("两点线性拟合：请依次选择并读取两个文件")
+                print("直流标定：请依次选择并读取两个直流电压数据文件")
                 lf1.run()
                 pass
-
             elif(num1==2):
+                while(1):
+                    try:
+                        freq=int(input("交流标定：键入正弦电压数据文件对应频率（MHz）："))
+                    except Exception as e:
+                        print(e)
+                        print("交流标定：//////////////出错，请重新键入//////////////")
+                        pass
+                ulf1=ulf(frequency=freq)
+                print("交流标定：请选择对应正弦电压数据文件")
+                ulf1.run()
+                pass
+            elif(num1==3):
                 rr1 = rr()
                 rr1.run()
                 rr1.conclude()
