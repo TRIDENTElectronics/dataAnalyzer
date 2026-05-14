@@ -185,33 +185,52 @@ def linear_correct(data_to_linearcorrect:list, linear_fit_list:list):
         data_linearcorrected.append(linear_fit_list[i][0]*data_to_linearcorrect[i] + linear_fit_list[i][1])
     return data_linearcorrected
 #毛刺消除
-def fitted_debur(fitted_data:list,wasted_num=16,signal_width=10,signal_direction=-1,bur_direction=-1):
+def fitted_debur(fitted_data:list,wasted_num=16,signal_width=16,signal_direction=-1,bur_direction=-1):
     data1=np.array(fitted_data)[wasted_num:-wasted_num]
     data1_indices=np.argsort(data1)
     data2=data1[data1_indices]
-    if signal_direction<0:
-        data3=data2[signal_width:-signal_width*31]
-    else:
-        data3=data2[signal_width*31:-signal_width]
+    data3=data2[signal_width:-signal_width]
     len3=len(data3)
     if bur_direction<0:
-        mean_baseline=np.mean(data3[len3//32:])
-        mean_bur=np.mean(data3[:len3//32])
-        mean_bur_relative=mean_bur-mean_baseline
-        if signal_direction<0:
-            firstburposi=(data1_indices[signal_width+len3//32//2]+wasted_num)%32#首个毛刺位置
+        datawin=(data1_indices[signal_width:signal_width+32])%32
+        values, counts = np.unique(datawin, return_counts=True)
+        max_idx = counts.argmax()
+        most_common = values[max_idx]#出现最多的cell号余数
+        max_count = counts[max_idx]#出现次数
+        if max_count>=16:
+            burrs=[]
+            for i in range(1024-wasted_num*2-signal_width*2):
+                n_burr=data1_indices[signal_width+i]
+                if n_burr%32==most_common:
+                    burrs.append(data1[n_burr])
+            burrs=np.array(burrs)
+            mean_bur=np.mean(burrs)
+            mean_baseline=np.mean(data1[data1_indices[signal_width+32:-signal_width]])
+            mean_bur_relative=mean_bur-mean_baseline
+            for posi in range((most_common+wasted_num)%32,1024,32):
+                fitted_data[posi]-=mean_bur_relative
         else:
-            firstburposi=(data1_indices[signal_width*31+len3//32//2]+wasted_num)%32#首个毛刺位置
+            print("毛刺消除失败")
     else:
-        mean_baseline=np.mean(data3[:-len3//32])
-        mean_bur=np.mean(data3[-len3//32:])
-        mean_bur_relative=mean_bur-mean_baseline
-        if signal_direction<0:
-            firstburposi=(data1_indices[signal_width+len3-1]+wasted_num)%32#首个毛刺位置
+        datawin=(data1_indices[-signal_width-32:-signal_width])%32
+        values, counts = np.unique(datawin, return_counts=True)
+        max_idx = counts.argmax()
+        most_common = values[max_idx]#出现最多的cell号余数
+        max_count = counts[max_idx]#出现次数
+        if max_count>=16:
+            burrs=[]
+            for i in range(1024-wasted_num*2-signal_width*2):
+                n_burr=data1_indices[-signal_width-i]
+                if n_burr%32==most_common:
+                    burrs.append(data1[n_burr])
+            burrs=np.array(burrs)
+            mean_bur=np.mean(burrs)
+            mean_baseline=np.mean(data1[data1_indices[signal_width:-signal_width-32]])
+            mean_bur_relative=mean_bur-mean_baseline
+            for posi in range((most_common+wasted_num)%32,1024,32):
+                fitted_data[posi]-=mean_bur_relative
         else:
-            firstburposi=(data1_indices[signal_width*31+len3-1]+wasted_num)%32#首个毛刺位置
-    for posi in range(firstburposi,1024,32):
-        fitted_data[posi]-=mean_bur_relative
+            print("毛刺消除失败")
     return fitted_data
 #时序转空间序
 def timeorder_to_cellorder(onegroup_timeorder_data, posi:int):
